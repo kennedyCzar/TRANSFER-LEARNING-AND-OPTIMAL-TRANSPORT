@@ -93,8 +93,7 @@ class subspacealignment(EvalC):
         else:
             X_t = PCA(k = self.d).fit(X_d)
         X_t = X_t.components_.T #get components
-        
-        #compute source and target projections
+        #compute source and target projections using subspace alignment matrix
         X_a = X_s.dot(X_s.T.dot(X_t))
         S_a = self.ds_x.dot(X_a) #source projection
         T_a = self.dt_x.dot(X_t) #target projection
@@ -112,11 +111,64 @@ class subspacealignment(EvalC):
         print(EvalC.summary(self.dt_y, self.ypred))
         return self
         
+class optimaltransport(EvalC):
+    def __init__(self):
+        '''Optimal Transport
+        '''
+        super().__init__()
+        return
+    
+    def fit_predict(self, ds_x = None, ds_y = None, dt_x = None, dt_y = None):
+        '''
+        '''
+        import ot
+        from scipy.spatial.distance import cdist
+        if ds_x is None:
+            raise IOError('Source Input data in required')
+        else:
+            self.ds_x = ds_x
+        if ds_y is None:
+            raise IOError('Source Input data in required')
+        else:
+            self.ds_y = ds_y.ravel()
+        if dt_x is None:
+            raise IOError('Source Input data in required')
+        else:
+            self.dt_x = dt_x
+        if dt_y is None:
+            raise IOError('Source Input data in required')
+        else:
+            self.dt_y = dt_y.ravel()
+        N_s, D_s = self.ds_x.shape
+        N_t, D_t = self.dt_x.shape
+        a = np.random.uniform(0, 1, size = N_s)
+        b = np.random.uniform(0, 1, size = N_t)
+        self.M = cdist(self.ds_x, self.dt_x)
+        self.G = ot.sinkhorn(a, b, self.M, 1)
+        print('>>>> Using Sinkhorn-Knopp algorithm from POT library')
+        self.S_a = self.G.dot(self.dt_x)
+        print('>>>> Transported Source to target domain using coupling matrix')
+        print('*'*40)
+        print('Initializing 1-Nearest Neighbour classifier')
+        self.classifier = KNeighborsClassifier(n_neighbors = 1)
+        self.classifier.fit(self.S_a, self.ds_y)
+        print('>>>> Done fitting source domain >>>>')
+        self.ypred = self.classifier.predict(self.dt_x)
+        print(EvalC.summary(self.dt_y, self.ypred))
+        return self
+                 
+        
 
-
+        
 #%% Testing
         
-subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 10, m_kernel = 'rbf')
+subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 10, m_kernel = 'linear')
+
+ot = optimaltransport().fit_predict(X_w, y_w, X_d, y_d)
+
+
+
+#%%
 
 
 
