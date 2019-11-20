@@ -43,6 +43,7 @@ class PCA:
         #covariance
         self.cov = (1/self.X.shape[1])* np.dot(self.X.T, self.X)
         self.eival, self.eivect = np.linalg.eig(self.cov)
+        self.eival, self.eivect = self.eival.real, self.eivect.real
         self.sorted_eigen = np.argsort(self.eival[:self.k])[::-1]
         #sort eigen values and return explained variance
         self.explained_variance = self.explained_variance_()
