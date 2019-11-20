@@ -19,19 +19,20 @@ from PCA import PCA
 import matplotlib.pyplot as plt
 from utils import EvalC
 from sklearn.exceptions import DataConversionWarning
+from sklearn.metrics import accuracy_score
 
 path = '/home/kenneth/Documents/MLDM M2/ADVANCE_ML/TRANSFER LEARNING/DATASET'
-data = loadmat(os.path.join(path, 'webcam.mat'))
+data = loadmat(os.path.join(path, 'caltech10.mat'))
 X_w = data['fts']
 y_w = data['labels']
 
-data_d = loadmat(os.path.join(path, 'dslr.mat'))
-X_d = data['fts']
-y_d = data['labels']
+data_d = loadmat(os.path.join(path, 'amazon.mat'))
+X_d = data_d['fts']
+y_d = data_d['labels']
 
 #%%
 
-class subspacealignment(EvalC):
+class subspacealignment():
     def __init__(self):
         '''
         Domain Adaptation via Subspace alignment
@@ -55,15 +56,16 @@ class subspacealignment(EvalC):
         else:
             self.ds_x = ds_x
         if ds_y is None:
-            raise IOError('Source Input data in required')
+            raise IOError('Source Input labels in required')
         else:
             self.ds_y = ds_y.ravel()
+            
         if dt_x is None:
-            raise IOError('Source Input data in required')
+            raise IOError('Target Input data in required')
         else:
             self.dt_x = dt_x
         if dt_y is None:
-            raise IOError('Source Input data in required')
+            raise IOError('Target Input labels in required')
         else:
             self.dt_y = dt_y.ravel()
         if d is None:
@@ -79,7 +81,7 @@ class subspacealignment(EvalC):
         #ignore warning when scaling data using MinMaxScaler
         warnings.filterwarnings('ignore', category = DataConversionWarning)
         #find PCA for Source domain after scaling
-        X_w = MinMaxScaler().fit_transform(self.ds_x).astype(float) #scale source data
+        X_w = StandardScaler().fit_transform(self.ds_x).astype(float) #scale source data
         if not type:
             X_s = kPCA(k = self.d, kernel = self.m_kernel).fit(X_w.T) #perform PCA
         else:
@@ -87,16 +89,16 @@ class subspacealignment(EvalC):
         X_s = X_s.components_.T #get components
         
         #PCA for target domain after scaling
-        X_d = MinMaxScaler().fit_transform(self.dt_x).astype(float) #scale target data
+        X_d = StandardScaler().fit_transform(self.dt_x).astype(float) #scale target data
         if not type:
             X_t = kPCA(k = self.d, kernel = self.m_kernel).fit(X_d.T) #perform PCA
         else:
             X_t = PCA(k = self.d).fit(X_d)
-        X_t = X_t.components_.T #get components
+        self.X_t = X_t.components_.T #get components
         #compute source and target projections using subspace alignment matrix
-        X_a = X_s.dot(X_s.T.dot(X_t))
-        S_a = self.ds_x.dot(X_a) #source projection
-        T_a = self.dt_x.dot(X_t) #target projection
+        self.X_a = X_s.dot(X_s.T.dot(self.X_t))
+        self.S_a = self.ds_x.dot(self.X_a) #source projection
+        self.T_a = self.dt_x.dot(self.X_t) #target projection
         print('>>>> Done with PCA and Data projection >>>>')
         #perform classification
         '''
@@ -105,10 +107,10 @@ class subspacealignment(EvalC):
         print('*'*40)
         print('Initializing 1-Nearest Neighbour classifier')
         self.classifier = KNeighborsClassifier(n_neighbors = 1)
-        self.classifier.fit(S_a, self.ds_y)
+        self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
-        self.ypred = self.classifier.predict(T_a)
-        print(EvalC.summary(self.dt_y, self.ypred))
+        self.ypred = self.classifier.predict(self.T_a)
+        print(accuracy_score(self.dt_y, self.ypred))
         return self
         
 class optimaltransport(EvalC):
@@ -145,6 +147,7 @@ class optimaltransport(EvalC):
         b = np.random.uniform(0, 1, size = N_t)
         self.M = cdist(self.ds_x, self.dt_x)
         self.G = ot.sinkhorn(a, b, self.M, 1)
+        print('*'*40)
         print('>>>> Using Sinkhorn-Knopp algorithm from POT library')
         self.S_a = self.G.dot(self.dt_x)
         print('>>>> Transported Source to target domain using coupling matrix')
@@ -154,21 +157,21 @@ class optimaltransport(EvalC):
         self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
         self.ypred = self.classifier.predict(self.dt_x)
-        print(EvalC.summary(self.dt_y, self.ypred))
+        print(accuracy_score(self.dt_y, self.ypred))
         return self
-                 
-        
 
         
 #%% Testing
         
-subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 10, m_kernel = 'linear')
+subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 100, m_kernel = 'sigmoid')
 
 ot = optimaltransport().fit_predict(X_w, y_w, X_d, y_d)
 
 
 
-#%%
+
+
+
 
 
 
