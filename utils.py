@@ -140,7 +140,10 @@ class EvalC:
         :params: A: Actual label
         :params: P: predicted labels
         '''
-        return EvalC.FP(A, P)/(EvalC.FP(A, P) + EvalC.TN(A, P))
+        if EvalC.FP(A, P) == 0 & EvalC.FP(A, P) == 0:
+            return 0
+        else:
+            return EvalC.FP(A, P)/(EvalC.FP(A, P) + EvalC.TN(A, P))
     
     @staticmethod
     def TNR(A, P):
@@ -157,7 +160,8 @@ class EvalC:
         '''
         return (2 * (EvalC.precision(A, P) * EvalC.recall(A, P)))/(EvalC.precision(A, P) + EvalC.recall(A, P))
     
-    def summary(self, A, P, beta):
+    @staticmethod
+    def summary(A, P):
         '''
         :params: A: Actual label
         :params: P: predicted labels
@@ -170,7 +174,6 @@ class EvalC:
         print('>> Precision: %s'%EvalC.precision(A, P))
         print('>> Recall: %s'%EvalC.recall(A, P))
         print('>> F1-score: %s'%EvalC.f1(A, P))
-        print('>> Improved F-score: %s'%np.mean(EvalC.fscore(A, P, beta)))
         print('>> True positive rate: %s'%EvalC.TPR(A, P))
         print('>> False positive rate: %s'%EvalC.FPR(A, P))
         print('*'*40)
