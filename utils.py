@@ -22,6 +22,17 @@ class EvalC:
                     --------------------- Recall
     '''
     @staticmethod
+    def accuary_multiclass(A, P):
+        '''Accuracy for multiclass classification
+        when actual is True and prediction is True
+        
+        :params: A: Actual label
+        :params: P: predicted labels
+        :Return type: np.mean(Y == model.predict(X))
+        '''
+        return np.sum([A[ii] == P[ii] for ii in range(len(A)) if A[ii] == P[ii]])/len(A)
+    
+    @staticmethod
     def TP(A, P):
         '''Docstring
         when actual is 1 and prediction is 1
@@ -29,7 +40,8 @@ class EvalC:
         :params: A: Actual label
         :params: P: predicted labels
         '''
-        return np.sum((A == 1) & (P == 1))
+        
+        return np.array([np.sum((A == x) & (P == x)) for x in A])
     
     @staticmethod
     def FP(A, P):
