@@ -19,7 +19,6 @@ from PCA import PCA
 import matplotlib.pyplot as plt
 from utils import EvalC
 from sklearn.exceptions import DataConversionWarning
-from sklearn.metrics import accuracy_score
 
 path = '/home/kenneth/Documents/MLDM M2/ADVANCE_ML/TRANSFER LEARNING/DATASET'
 data = loadmat(os.path.join(path, 'caltech10.mat'))
@@ -32,7 +31,7 @@ y_d = data_d['labels']
 
 #%%
 
-class subspacealignment():
+class subspacealignment(EvalC):
     def __init__(self):
         '''
         Domain Adaptation via Subspace alignment
@@ -81,7 +80,7 @@ class subspacealignment():
         #ignore warning when scaling data using MinMaxScaler
         warnings.filterwarnings('ignore', category = DataConversionWarning)
         #find PCA for Source domain after scaling
-        X_w = StandardScaler().fit_transform(self.ds_x).astype(float) #scale source data
+        X_w = MinMaxScaler().fit_transform(self.ds_x).astype(float) #scale source data
         if not type:
             X_s = kPCA(k = self.d, kernel = self.m_kernel).fit(X_w.T) #perform PCA
         else:
@@ -89,7 +88,7 @@ class subspacealignment():
         X_s = X_s.components_.T #get components
         
         #PCA for target domain after scaling
-        X_d = StandardScaler().fit_transform(self.dt_x).astype(float) #scale target data
+        X_d = MinMaxScaler().fit_transform(self.dt_x).astype(float) #scale target data
         if not type:
             X_t = kPCA(k = self.d, kernel = self.m_kernel).fit(X_d.T) #perform PCA
         else:
@@ -110,7 +109,7 @@ class subspacealignment():
         self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
         self.ypred = self.classifier.predict(self.T_a)
-        print(accuracy_score(self.dt_y, self.ypred))
+        print(f'Accuracy: {EvalC.accuary_multiclass(self.dt_y, self.ypred)}')
         return self
         
 class optimaltransport(EvalC):
@@ -157,13 +156,13 @@ class optimaltransport(EvalC):
         self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
         self.ypred = self.classifier.predict(self.dt_x)
-        print(accuracy_score(self.dt_y, self.ypred))
+        print(f'Accuracy: {EvalC.accuary_multiclass(self.dt_y, self.ypred)}')
         return self
 
         
 #%% Testing
         
-subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 100, m_kernel = 'sigmoid')
+subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 100, m_kernel = 'linear')
 
 ot = optimaltransport().fit_predict(X_w, y_w, X_d, y_d)
 
