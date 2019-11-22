@@ -142,10 +142,10 @@ class optimaltransport(EvalC):
             self.dt_y = dt_y.ravel()
         N_s, D_s = self.ds_x.shape
         N_t, D_t = self.dt_x.shape
-        a = np.random.uniform(0, 1, size = N_s)
-        b = np.random.uniform(0, 1, size = N_t)
+        a = np.ones(N_s)
+        b = np.ones(N_t)
         self.M = cdist(self.ds_x, self.dt_x)
-        self.G = ot.sinkhorn(a, b, self.M, 1, method = 'sinkhorn_stabilized')
+        self.G = ot.sinkhorn(a, b, self.M, 1, method = 'sinkhorn')
         print('*'*40)
         print('>>>> Using Sinkhorn-Knopp algorithm from POT library')
         self.S_a = self.G.dot(self.dt_x)
