@@ -27,7 +27,7 @@ class_res = {'w_d': {'acc': [], 'time': []}, 'c_a': {'acc': [], 'time': []}, 'd_
             'c_d': {'acc': [], 'time': []}}
 
 
-#%%
+#%% Comparing SADA and ERDA
 
 for p, q in dataset.items():
     for ii in da:
@@ -95,4 +95,72 @@ for p, q in dataset.items():
             class_res[ii]['acc'].append(ot.accuracy)
             class_res[ii]['time'].append(round(time.time() - start, 3))
         
-            
+#%% Comparing Our version of Sinkhorn's algorithm with POT
+
+for p, q in dataset.items():
+    for ii in da:
+        if ii == 'w_d':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['webcam']['data'], dataset['webcam']['label'], dataset['dslr']['data'], dataset['dslr']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['webcam']['data'], dataset['webcam']['label'], dataset['dslr']['data'], dataset['dslr']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        elif ii == 'c_a':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['caltech10']['data'], dataset['caltech10']['label'], dataset['amazon']['data'], dataset['amazon']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['caltech10']['data'], dataset['caltech10']['label'], dataset['amazon']['data'], dataset['amazon']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        elif ii == 'd_c':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['dslr']['data'], dataset['dslr']['label'], dataset['caltech10']['data'], dataset['caltech10']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['dslr']['data'], dataset['dslr']['label'], dataset['caltech10']['data'], dataset['caltech10']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        elif ii == 'c_w':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['caltech10']['data'], dataset['caltech10']['label'], dataset['webcam']['data'], dataset['webcam']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['caltech10']['data'], dataset['caltech10']['label'], dataset['webcam']['data'], dataset['webcam']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        elif ii == 'a_d':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['amazon']['data'], dataset['amazon']['label'], dataset['dslr']['data'], dataset['dslr']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['amazon']['data'], dataset['amazon']['label'], dataset['dslr']['data'], dataset['dslr']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        elif ii == 'w_a':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['webcam']['data'], dataset['webcam']['label'], dataset['amazon']['data'], dataset['amazon']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['webcam']['data'], dataset['webcam']['label'], dataset['amazon']['data'], dataset['amazon']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        elif ii == 'c_d':
+            start = time.time()
+            subalignacc = sinkhorn().fit(dataset['caltech10']['data'], dataset['caltech10']['label'], dataset['dslr']['data'], dataset['dslr']['label'])
+            class_res[ii]['acc'].append(subalignacc.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+            start = time.time()
+            ot = optimaltransport().fit_predict(dataset['caltech10']['data'], dataset['caltech10']['label'], dataset['dslr']['data'], dataset['dslr']['label'])
+            class_res[ii]['acc'].append(ot.accuracy)
+            class_res[ii]['time'].append(round(time.time() - start, 3))
+        
+
