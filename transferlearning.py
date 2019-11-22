@@ -11,23 +11,23 @@ from __future__ import absolute_import
 import os
 import warnings
 import numpy as np
+import time
 from scipy.io import loadmat
 from sklearn.preprocessing import MinMaxScaler
 from KPCA import kPCA
 from sklearn.neighbors import KNeighborsClassifier
 from PCA import PCA
-import matplotlib.pyplot as plt
 from utils import EvalC
 from sklearn.exceptions import DataConversionWarning
 
-path = '/home/kenneth/Documents/MLDM M2/ADVANCE_ML/TRANSFER LEARNING/DATASET'
-data = loadmat(os.path.join(path, 'webcam.mat'))
-X_w = data['fts']
-y_w = data['labels']
-
-data_d = loadmat(os.path.join(path, 'dslr.mat'))
-X_d = data_d['fts']
-y_d = data_d['labels']
+#path = '/home/kenneth/Documents/MLDM M2/ADVANCE_ML/TRANSFER LEARNING/DATASET'
+#data = loadmat(os.path.join(path, 'amazon.mat'))
+#X_w = data['fts']
+#y_w = data['labels']
+#
+#data_d = loadmat(os.path.join(path, 'webcam.mat'))
+#X_d = data_d['fts']
+#y_d = data_d['labels']
 
 #%%
 
@@ -50,6 +50,7 @@ class subspacealignment(EvalC):
         :param: dt_y: Dx1
         :param: d: Number of principal components
         '''
+#        start = time.time()
         if ds_x is None:
             raise IOError('Source Input data in required')
         else:
@@ -98,7 +99,7 @@ class subspacealignment(EvalC):
         self.X_a = X_s.dot(X_s.T.dot(self.X_t))
         self.S_a = self.ds_x.dot(self.X_a) #source projection
         self.T_a = self.dt_x.dot(self.X_t) #target projection
-        print('>>>> Done with PCA and Data projection >>>>')
+#        print(f'>>>> Done with Subspace alingment and Data projection >>>>\nTime:  {round(time.time() - start, 3)}secs')
         #perform classification
         '''
         Fit a 1-NN classifier on S_a and make predictions on T_a
@@ -109,7 +110,8 @@ class subspacealignment(EvalC):
         self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
         self.ypred = self.classifier.predict(self.T_a)
-        print(f'Accuracy: {EvalC.accuary_multiclass(self.dt_y, self.ypred)}')
+        self.accuracy = EvalC.accuary_multiclass(self.dt_y, self.ypred)
+        print(f'Accuracy: {self.accuracy}')
         return self
         
 class optimaltransport(EvalC):
@@ -124,6 +126,7 @@ class optimaltransport(EvalC):
         '''
         import ot
         from scipy.spatial.distance import cdist
+#        start = time.time()
         if ds_x is None:
             raise IOError('Source Input data in required')
         else:
@@ -145,7 +148,8 @@ class optimaltransport(EvalC):
         a = np.ones(N_s)
         b = np.ones(N_t)
         self.M = cdist(self.ds_x, self.dt_x)
-        self.G = ot.sinkhorn(a, b, self.M, 1, method = 'sinkhorn')
+        self.G = ot.sinkhorn(a, b, self.M, 10, method = 'sinkhorn')
+#        print(f'Finnished running Sinkhorn from POT\nTime: {round(time.time() - start, 3)}secs')
         print('*'*40)
         print('>>>> Using Sinkhorn-Knopp algorithm from POT library')
         self.S_a = self.G.dot(self.dt_x)
@@ -156,15 +160,16 @@ class optimaltransport(EvalC):
         self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
         self.ypred = self.classifier.predict(self.dt_x)
-        print(f'Accuracy: {EvalC.accuary_multiclass(self.dt_y, self.ypred)}')
+        self.accuracy = EvalC.accuary_multiclass(self.dt_y, self.ypred)
+        print(f'Accuracy: {self.accuracy}')
         return self
 
         
 #%% Testing
         
-subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 100, m_kernel = 'linear')
-
-ot = optimaltransport().fit_predict(X_w, y_w, X_d, y_d)
+#subalignacc = subspacealignment().fit_predict(X_w, y_w, X_d, y_d, d = 100, m_kernel = 'linear')
+#
+#ot = optimaltransport().fit_predict(X_w, y_w, X_d, y_d)
 
 
 
