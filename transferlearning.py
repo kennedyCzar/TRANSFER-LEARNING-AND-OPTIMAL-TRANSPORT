@@ -50,7 +50,6 @@ class subspacealignment(EvalC):
         :param: dt_y: Dx1
         :param: d: Number of principal components
         '''
-#        start = time.time()
         if ds_x is None:
             raise IOError('Source Input data in required')
         else:
@@ -99,7 +98,7 @@ class subspacealignment(EvalC):
         self.X_a = X_s.dot(X_s.T.dot(self.X_t))
         self.S_a = self.ds_x.dot(self.X_a) #source projection
         self.T_a = self.dt_x.dot(self.X_t) #target projection
-#        print(f'>>>> Done with Subspace alingment and Data projection >>>>\nTime:  {round(time.time() - start, 3)}secs')
+        print(f'>>>> Done with Subspace alingment and Data projection >>>>')
         #perform classification
         '''
         Fit a 1-NN classifier on S_a and make predictions on T_a
@@ -126,7 +125,6 @@ class optimaltransport(EvalC):
         '''
         import ot
         from scipy.spatial.distance import cdist
-#        start = time.time()
         if ds_x is None:
             raise IOError('Source Input data in required')
         else:
@@ -148,10 +146,9 @@ class optimaltransport(EvalC):
         a = np.ones(N_s)
         b = np.ones(N_t)
         self.M = cdist(self.ds_x, self.dt_x)
-        self.G = ot.sinkhorn(a, b, self.M, 10, method = 'sinkhorn')
-#        print(f'Finnished running Sinkhorn from POT\nTime: {round(time.time() - start, 3)}secs')
+        self.G = ot.sinkhorn(a, b, self.M, 5, method = 'sinkhorn')
+        print(f'>>>> Finnished running Sinkhorn from POT library >>>>' )
         print('*'*40)
-        print('>>>> Using Sinkhorn-Knopp algorithm from POT library')
         self.S_a = self.G.dot(self.dt_x)
         print('>>>> Transported Source to target domain using coupling matrix')
         print('*'*40)
