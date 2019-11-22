@@ -7,7 +7,6 @@ Created on Tue Nov 19 11:34:48 2019
 """
 
 from __future__ import absolute_import
-import time
 import numpy as np
 from scipy.spatial.distance import cdist
 from utils import EvalC
@@ -30,7 +29,6 @@ class sinkhorn(EvalC):
         :param M: Cost Matrix
         :param reg: regularizaton term. Default is 1
         '''
-#        start = time.time()
         if ds_x is None:
             raise IOError('Source Input data in required')
         else:
@@ -86,27 +84,27 @@ class sinkhorn(EvalC):
         self.v = np.ones(N_md)
         #compute Kernel K
         self.K = np.exp(-self.M/reg)
-        tmp2 = np.empty(b.shape, dtype=self.M.dtype)
+        x = np.empty(b.shape, dtype=self.M.dtype)
         Kp = (1 / a).reshape(-1, 1) * self.K
         epsilon = 1
+        #iterate until error is unchanged
         for iterr in range(self.iteration):
             if (epsilon > self.thresh):
-                uprev = self.u
-                vprev = self.v
-    #            KtransposeU = np.dot(K.T, u)
+                uprev = self.u #previous u
+                vprev = self.v #previous v
+                #updated u and v accordingly                
                 self.v = np.divide(b, self.K.T.dot(self.u))
                 self.u = 1. / np.dot(Kp, self.v)
+                #break if we encounter nan or infinity
                 if (np.any(self.K.T.dot(self.u) == 0) or np.any(np.isnan(self.u)) or np.any(np.isnan(self.v))
                     or np.any(np.isinf(self.u)) or np.any(np.isinf(self.v))):
                     self.u = uprev
                     self.v = vprev
                     break
-            if (iterr % 10) == 0:
-                # compute right marginal tmp2= (diag(u)Kdiag(v))^T1
-                tmp2 = self.u.dot(self.K.dot(self.v))
-                epsilon = np.linalg.norm(tmp2 - b)
+                x = self.u.dot(self.K.dot(self.v))
+                epsilon = np.linalg.norm(x - b)
+        #return transportation matrix d_m
         self.G = self.u.reshape((-1, 1)) * self.K * self.v.reshape((1, -1))
-#        print(f'Finnihsed running sinkhorn algorithm\nTime: {round(time.time() - start, 3)}secs')
         print('*'*40)
         self.S_a = self.G.dot(self.dt_x)
         print('>>>> Transported Source to target domain using coupling matrix')
@@ -116,7 +114,8 @@ class sinkhorn(EvalC):
         self.classifier.fit(self.S_a, self.ds_y)
         print('>>>> Done fitting source domain >>>>')
         self.ypred = self.classifier.predict(self.dt_x)
-        print(f'Accuracy: {EvalC.accuary_multiclass(self.dt_y, self.ypred)}')
+        self.accuracy = EvalC.accuary_multiclass(self.dt_y, self.ypred)
+        print(f'Accuracy: {self.accuracy}')
         return self
     
     
