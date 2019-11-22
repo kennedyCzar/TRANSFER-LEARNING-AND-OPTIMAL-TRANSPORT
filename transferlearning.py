@@ -12,7 +12,7 @@ import os
 import warnings
 import numpy as np
 from scipy.io import loadmat
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from KPCA import kPCA
 from sklearn.neighbors import KNeighborsClassifier
 from PCA import PCA
@@ -21,11 +21,11 @@ from utils import EvalC
 from sklearn.exceptions import DataConversionWarning
 
 path = '/home/kenneth/Documents/MLDM M2/ADVANCE_ML/TRANSFER LEARNING/DATASET'
-data = loadmat(os.path.join(path, 'caltech10.mat'))
+data = loadmat(os.path.join(path, 'webcam.mat'))
 X_w = data['fts']
 y_w = data['labels']
 
-data_d = loadmat(os.path.join(path, 'amazon.mat'))
+data_d = loadmat(os.path.join(path, 'dslr.mat'))
 X_d = data_d['fts']
 y_d = data_d['labels']
 
@@ -145,7 +145,7 @@ class optimaltransport(EvalC):
         a = np.random.uniform(0, 1, size = N_s)
         b = np.random.uniform(0, 1, size = N_t)
         self.M = cdist(self.ds_x, self.dt_x)
-        self.G = ot.sinkhorn(a, b, self.M, 1)
+        self.G = ot.sinkhorn(a, b, self.M, 1, method = 'sinkhorn_stabilized')
         print('*'*40)
         print('>>>> Using Sinkhorn-Knopp algorithm from POT library')
         self.S_a = self.G.dot(self.dt_x)
